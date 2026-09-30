@@ -162,6 +162,9 @@ action_selector = sprites.create(
 )
 action_selector.set_position(-100, -100)
 
+# Game-state variables keep the same controller buttons meaningful across
+# selection, the main room, play scenes, and rest. action_busy acts as a lock
+# so a second button press cannot interrupt an animation already in progress.
 selected_pet = 0
 selection_finished = False
 in_room = False
@@ -170,6 +173,8 @@ action_busy = False
 in_play_scene = False
 in_rest_scene = False
 
+# The pet's need is deliberately hidden. The player reads behavioural clues
+# instead of a status bar; care_streak rewards three correct observations.
 pet_need = -1
 need_active = False
 care_streak = 0
@@ -228,6 +233,9 @@ def move_right():
 
     selected_pet = 1
     selector.set_position(118, 66)
+# Move whichever pet was selected without duplicating the walking logic.
+# Selecting the sprite inside the function also keeps MakeCode Python's type
+# inference reliable; a generic sprite parameter caused attribute errors.
 def smooth_move_to_x(target_x, speed):
     if selected_pet == 0:
         moving_pet = cat_icon
@@ -248,6 +256,8 @@ def smooth_move_to_x(target_x, speed):
 
     moving_pet.vx = 0
     moving_pet.x = target_x
+# Translate the hidden need into a small, species-specific visual clue.
+# The pet always returns to its starting position after the clue finishes.
 def show_need_clue():
     if selected_pet == 0:
         clue_pet = cat_icon
@@ -379,6 +389,8 @@ def finish_correct_care():
 
     pause(300)
     choose_new_need()
+# Pick the next hidden need and prevent an immediate repeat, which makes the
+# interaction loop feel varied while keeping all three actions equally possible.
 def choose_new_need():
     global pet_need
     global need_active
@@ -542,6 +554,8 @@ e44e111ee111e44e
 ................
 """)
 
+# Cover the scene with a moving colour panel and the selected pet's face.
+# The background changes while the screen is covered to avoid a hard cut.
 def wipe_to_play_scene():
     wipe_image = image.create(160, 120)
     wipe_image.fill(8)
@@ -605,6 +619,8 @@ def wipe_to_play_scene():
     transition_icon.destroy()
     wipe_sprite.destroy()
 
+# Reverse the wipe when returning. The corgi also walks back through the door,
+# while the cat returns directly because its playroom is still indoors.
 def wipe_back_to_room():
     return_door = sprites.create(
         dog_door_open,
@@ -689,14 +705,11 @@ def wipe_back_to_room():
     return_door.destroy()
 
 def play_with_cat():
-    # No door: the cat goes to another indoor room
+    # The cat moves to a separate indoor playroom rather than going outdoors.
     cat_icon.say_text("Play time!", 700)
     pause(700)
 
     wipe_to_play_scene()
-
-    # Temporary pause before adding the cat wand
-    
 
 
 def play_with_dog():
@@ -732,8 +745,10 @@ def play_with_dog():
 
     wipe_to_play_scene()
 
-    # Temporary pause before adding the ball
 
+
+# A hand and wand enter from the right. Alternating wand images and velocity
+# changes make the cat follow the toy before both return to their start points.
 def cat_wand_action():
     start_x = cat_icon.x
     start_y = cat_icon.y
@@ -798,6 +813,8 @@ def cat_wand_action():
     cat_icon.vy = 0
     cat_icon.set_position(start_x, start_y)
 
+# The ball uses acceleration to create an arc; the corgi then runs to catch it
+# and carries it back while a small vertical bob suggests a running gait.
 def dog_ball_action():
     start_x = corgi_icon.x
     start_y = corgi_icon.y
@@ -890,6 +907,7 @@ def dog_ball_action():
     pause(250)
     ball_sprite.destroy()
 
+# A has a different interaction in each pet's dedicated play environment.
 def play_scene_action():
     global action_busy
 
@@ -972,6 +990,8 @@ def sleep_breathing():
 
 game.on_update_interval(500, sleep_breathing)
 
+# Rest is a persistent state rather than a short animation. The interface is
+# hidden, the palette becomes darker, and the awake image changes to closed eyes.
 def rest_pet():
     global action_busy
     global in_rest_scene
@@ -1008,6 +1028,7 @@ def rest_pet():
         corgi_icon.say_text("Zzz...", 100000)  
     in_rest_scene = True
 
+# B reverses every rest-state change, then resumes the normal care loop.
 def wake_pet():
     global action_busy
     global in_rest_scene
@@ -1048,6 +1069,9 @@ def wake_pet():
     finish_correct_care()
     action_busy = False
 
+# Compare the player's choice with the hidden need. A mismatch gives feedback
+# but does not block the chosen action, preserving player freedom after testing
+# showed that forced repetition made the game frustrating.
 def perform_action():
     global action_busy
     global need_active
@@ -1167,6 +1191,8 @@ def return_to_selection():
     else:
         selector.set_position(118, 66)
 
+# Controller events are registered once. The handler functions route each press
+# according to the current game state instead of creating separate controllers.
 controller.left.on_event(ControllerButtonEvent.PRESSED, move_left)
 controller.right.on_event(ControllerButtonEvent.PRESSED, move_right)
 controller.A.on_event(ControllerButtonEvent.PRESSED, choose_pet)
