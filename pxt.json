@@ -1,0 +1,18 @@
+{
+  "name": "VirtualPet_Final",
+  "description": "Final MakeCode Arcade virtual pet game.",
+  "dependencies": {
+    "device": "*"
+  },
+  "files": [
+    "main.py"
+  ],
+  "targetVersions": {
+    "branch": "stable4.1",
+    "tag": "v4.1.25",
+    "commits": "https://github.com/microsoft/pxt-arcade/commits/d4885bd35de1a9300183bf5a3fd1eec816992625",
+    "target": "4.1.25",
+    "pxt": "13.1.23"
+  },
+  "preferredEditor": "pyprj"
+}
